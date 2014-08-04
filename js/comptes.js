@@ -10,13 +10,13 @@ var ExpensesList = React.createClass({displayName: 'ExpensesList',
              var str = n === tos.length-1 ? '' :
                        n === tos.length-2 ? ' and ' :
                                             ', ';
-              return [D.b(null, to), str];
+              return D.td(null, D.b(null, to), str);
             });
       }
       return to;
     };
                      
-    return D.table(null,
+    return D.table({className:"table"},
              D.thead(null,
                 D.tr(null,
                    D.th(null, 'From'),
@@ -27,9 +27,9 @@ var ExpensesList = React.createClass({displayName: 'ExpensesList',
              D.tbody(null,
                this.props.expenses.map(function(exp) {
                  return (
-                   D.tr(null,
+                   D.tr({key: exp.key},
                      D.td(null, exp.from),
-                     D.td(null, getTo(exp.to, exp.tos)),
+                     getTo(exp.to, exp.tos),
                      D.td(null, exp.amount)
                    )
                   )
@@ -68,12 +68,15 @@ var App = React.createClass({displayName: 'ExpensesApp',
     var from = this.refs.from.getDOMNode();
     var tos = this.refs.to.getDOMNode();
     var amount = this.refs.amount.getDOMNode();
+    var description = this.refs.description.getDOMNode();
     this.state.expenses.push({
-      from  : from.value,
-      amount: parseFloat(amount.value),
-      tos   : tos.value.split(',')
-                 .map(function(x){return x.trim()})
-                 .filter(function(x){return x !== ''})
+     description: description.value,
+            from: from.value,
+          amount: parseFloat(amount.value),
+             tos: tos.value.split(',')
+                     .map(function(x){return x.trim()})
+                     .filter(function(x){return x !== ''}),
+             key: description.value + Date.now()
     });
     this.setState({expenses: this.state.expenses});
     this.refs.form.getDOMNode().reset();
@@ -87,7 +90,8 @@ var App = React.createClass({displayName: 'ExpensesApp',
         expenses.push({
           from  : exp.from,
           to    : to,
-          amount: exp.amount / (exp.tos.length)
+          amount: - exp.amount / (exp.tos.length),
+             key: exp.key + '-to-' + to
         });
       });
     });
@@ -107,11 +111,18 @@ var App = React.createClass({displayName: 'ExpensesApp',
 
   render: function() {
     return D.div(null, 
-       D.h3(null, "Expenses"), 
+       D.h3(null, "Who owes what?"), 
         ExpensesList({expenses: this.simplify()}), 
          D.form({onSubmit: this.handleSubmit, ref:'form'}, 
-          D.input({placeholder: 'From', ref:'from', required:true}),
-          D.input({placeholder: 'To',   ref:'to',   required:true}),
+          D.input({placeholder: 'Description',
+                           ref:'description',
+                      required: true}),
+          D.input({placeholder: 'Who paid?', ref:'from', required:true}),
+          D.input({placeholder: 'For who?',
+                         title: 'You can enter several names, ' +
+                                'separated by a coma',
+                           ref: 'to',
+                      required: true}),
           D.input({type:'number',
                     placeholder:'Amount',
                     ref:'amount',
@@ -120,7 +131,9 @@ var App = React.createClass({displayName: 'ExpensesApp',
           }),
           D.button(null, 'Add')
         ),
+        D.h3(null, "List of all expenses"), 
         ExpensesList({expenses: this.state.expenses}),
+        D.h3(null, "User accounts"), 
         UsersList({users: this.allusers()})
      );
   }
