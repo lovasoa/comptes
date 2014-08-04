@@ -10,10 +10,10 @@ var ExpensesList = React.createClass({displayName: 'ExpensesList',
              var str = n === tos.length-1 ? '' :
                        n === tos.length-2 ? ' and ' :
                                             ', ';
-              return D.td(null, D.b(null, to), str);
+              return [D.b(null, to), str];
             });
       }
-      return to;
+      return D.td(null, to);
     };
                      
     return D.table({className:"table"},
