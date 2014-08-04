@@ -16,7 +16,7 @@ var ExpensesList = React.createClass({displayName: 'ExpensesList',
       return D.td(null, to);
     };
                      
-    return D.table({className:"table table-stripped"},
+    return D.table({className:"table table-stripped table-hover"},
              D.thead(null,
                 D.tr(null,
                    D.th(null, 'From'),
@@ -41,7 +41,7 @@ var ExpensesList = React.createClass({displayName: 'ExpensesList',
 
 var UsersList = React.createClass({displayName:'UserList',
   render: function() {
-    return D.table({className:'table table-bordered'},
+    return D.table({className:'table table-bordered table-condensed'},
         D.thead(null,
           D.tr(null,
             D.th(null, "User"),
