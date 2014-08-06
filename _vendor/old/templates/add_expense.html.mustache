@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+
+<head>
+	<meta charset="utf8">
+	<title>{{title}}</title>
+</head>
+
+<body>
+	<h1>{{title}}</h1>
+	<main>
+		<form method="post" action="../php/add_expense.php">
+			<p>
+			<label for="author">Personne qui a fait la dépense</label>
+			<select name="author">
+				{{#users}}
+				<option value="{{id}}">{{name}}</option>
+				{{/users}}
+			</select>
+			</p>
+
+			<p>
+			<label for="description">Description de la dépense</label>
+			<input type="text" name="description" id="description">
+			</p>
+
+			<p>
+			<label >Montant
+			<input type="number" step="0.01" name="amount" id="amount"> €
+			</label>
+			</p>
+
+			<p>
+			<label>Personnes qui vont en profiter</label>
+			<br>
+			<select name="for[]" multiple>
+				{{#users}}
+				<option value="{{id}}" selected>{{name}}</option>
+				{{/users}}
+			</select>
+			</label>
+			</p>
+
+			<input type="submit" value="add expense"/>
+		</form>
+	</main>
+</body>
+
+</html>

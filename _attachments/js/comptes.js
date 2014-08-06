@@ -2,20 +2,8 @@
 
 var D = React.DOM;
 
-var ExpensesList = React.createClass({displayName: 'ExpensesList',
+var DebtsList = React.createClass({displayName: 'debtsList',
   render: function() {
-    var getTo = function getTo(to, tos) {
-      if ( !to ) {
-        to = tos.map(function(to, n){
-             var str = n === tos.length-1 ? '' :
-                       n === tos.length-2 ? ' and ' :
-                                            ', ';
-              return [D.b(null, to), str];
-            });
-      }
-      return D.td(null, to);
-    };
-                     
     return D.table({className:"table table-stripped table-hover"},
              D.thead(null,
                 D.tr(null,
@@ -25,16 +13,30 @@ var ExpensesList = React.createClass({displayName: 'ExpensesList',
                  )
                ),
              D.tbody(null,
-               this.props.expenses.map(function(exp) {
+               this.props.debts.map(function(debt) {
                  return (
-                   D.tr({key: exp.key},
-                     D.td(null, exp.from),
-                     getTo(exp.to, exp.tos),
-                     D.td(null, exp.amount)
+                   D.tr(null,
+                     D.td(null, debt.from),
+                     D.td(null, debt.to),
+                     D.td(null, debt.amount)
                    )
                   )
                })
              )
+           );
+  }
+});
+
+var ExpensesList = React.createClass({displayName:'ExpensesList',
+  render: function() {
+    return D.ul({className:'list-group'},
+              this.props.expenses.map(function(exp, n){
+                return D.li({className: 'list-group-item'},
+                            exp.description,
+                            D.i(null, exp.from),
+                            D.span({className:'badge'}, exp.amount)
+                          );
+              })
            );
   }
 });
@@ -63,21 +65,36 @@ var App = React.createClass({displayName: 'ExpensesApp',
     return {expenses: [], text: ''};
   },
 
+  componentDidMount: function() {
+    var that = this;
+    this.props.db.view("expenseslist/ListOfExpenses", {
+      success: function success (view) {
+                that.setState({
+                  expenses: view.rows.map(function(r){return r.value})
+                });
+               },
+      error: console.error.bind(console),
+      reduce: false
+    });
+  },
+  
   handleSubmit: function(e) {
     e.preventDefault();
     var from = this.refs.from.getDOMNode();
     var tos = this.refs.to.getDOMNode();
     var amount = this.refs.amount.getDOMNode();
     var description = this.refs.description.getDOMNode();
-    this.state.expenses.push({
+    var doc = {
      description: description.value,
             from: from.value,
           amount: parseFloat(amount.value),
              tos: tos.value.split(',')
                      .map(function(x){return x.trim()})
                      .filter(function(x){return x !== ''}),
-             key: description.value + Date.now()
-    });
+             date: (new Date()).toISOString()
+    };
+    this.props.db.saveDoc(doc);
+    this.state.expenses.push(doc);
     this.setState({expenses: this.state.expenses});
     this.refs.form.getDOMNode().reset();
     from.focus();
@@ -90,8 +107,7 @@ var App = React.createClass({displayName: 'ExpensesApp',
         expenses.push({
           from  : exp.from,
           to    : to,
-          amount: - exp.amount / (exp.tos.length),
-             key: exp.key + '-to-' + to
+          amount: - exp.amount / (exp.tos.length)
         });
       });
     });
@@ -112,7 +128,7 @@ var App = React.createClass({displayName: 'ExpensesApp',
   render: function() {
     return D.div(null, 
        D.h3(null, "Who owes what?"), 
-        ExpensesList({expenses: this.simplify()}), 
+        DebtsList({debts: this.simplify()}), 
          D.form({onSubmit: this.handleSubmit, ref:'form'}, 
           D.input({placeholder: 'Description',
                            ref:'description',
@@ -139,7 +155,12 @@ var App = React.createClass({displayName: 'ExpensesApp',
   }
 });
 
-mountNode = document.getElementById('expenses');
-React.renderComponent(App(null), mountNode);
+function start() {
+  var mountNode = document.getElementById('expenses');
+  var app = App({db: $.couch.db('comptes')});
 
+  React.renderComponent(app, mountNode);
+}
+
+start();
 })();
