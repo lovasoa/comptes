@@ -1,3 +1,5 @@
+var HOST = "";
+
 (function(){
 
 var D = React.DOM;
@@ -29,15 +31,20 @@ var DebtsList = React.createClass({displayName: 'debtsList',
 
 var ExpensesList = React.createClass({displayName:'ExpensesList',
   render: function() {
-    return D.ul({className:'list-group'},
-              this.props.expenses.map(function(exp, n){
-                return D.li({className: 'list-group-item'},
-                            exp.description,
-                            D.i(null, exp.from),
-                            D.span({className:'badge'}, exp.amount)
-                          );
-              })
-           );
+    return D.article({className:'panel panel-default', id:'ExpensesList'},
+            D.div({className:'panel-heading'}, D.h3(null, "List of all expenses")),
+            D.div({className:'panel-body'},
+              D.ul({className:'list-group'},
+                this.props.expenses.map(function(exp, n){
+                  return D.li({className: 'list-group-item'},
+                              exp.description,
+                              D.i(null, exp.from),
+                              D.span({className:'badge'}, exp.amount)
+                            );
+                })
+             )
+            )
+          );
   }
 });
 
@@ -60,12 +67,92 @@ var UsersList = React.createClass({displayName:'UserList',
   } 
 });
 
+var NewExpenseForm = React.createClass({displayName:'NewExpenseForm',
+  getInitialState: function() {
+    return {
+      description: "",
+             from: "",
+               to: "",
+           amount: ""
+    }; 
+  },
+
+  handleSubmit: function(evt) {
+    evt.preventDefault();
+    this.props.addExpense({
+      description: this.state.date,
+             from: this.state.from,
+              tos: this.getTosArray(),
+           amount: this.state.amount,
+             date: new Date().toISOString()
+    });
+    this.setState(this.getInitialState());
+    this.refs.form.getDOMNode().reset();
+    this.refs.description.getDOMNode().focus();
+  },
+
+  getTosArray: function() {
+    return  this.state.to.split(',')
+              .map(function(x){return x.trim()})
+              .filter(function(x){return x.length});
+  },
+
+  val: function(name) {
+    return (name in this.refs) ? this.refs[name].getDOMNode().value : '';
+  },
+
+  changeState: function() {
+    this.setState({
+      description: this.val('description'),
+      from: this.val('from'),
+      amount: Math.round(parseFloat(this.val('amount')) * 100) / 100 || '',
+      to: this.val('to')
+    });
+  },
+
+  render: function render() {
+     return D.form({onSubmit: this.handleSubmit, ref:'form'}, 
+      D.input({placeholder: 'Description',
+                       ref: 'description',
+                     value: this.state.description,
+                  onChange: this.changeState,
+                  required: true}),
+      D.input({placeholder: 'Who paid?',
+                       ref:'from',
+                  required: true,
+                     value: this.state.from,
+                  onChange: this.changeState}),
+      D.input({placeholder: 'For who?',
+                     title: 'You can enter several names, ' +
+                            'separated by a coma',
+                       ref: 'to',
+                  required: true,
+                     value: this.state.to,
+                  onChange: this.changeState}),
+             D.input({type:'number',
+               placeholder:'Amount',
+                       ref:'amount',
+                  required: true,
+                       min: 0,
+                      step: 0.01,
+                     value: this.state.amount,
+                  onChange: this.changeState}),
+          D.button(null, 'Add')
+    );
+  }
+});
+
 var App = React.createClass({displayName: 'ExpensesApp',
   getInitialState: function() {
     return {expenses: [], text: ''};
   },
 
   componentDidMount: function() {
+    this.props.db.changes().onChange(this.fetchData);
+    this.fetchData();
+  },
+  
+  fetchData: function() {
     var that = this;
     this.props.db.view("expenseslist/ListOfExpenses", {
       success: function success (view) {
@@ -77,27 +164,12 @@ var App = React.createClass({displayName: 'ExpensesApp',
       reduce: false
     });
   },
-  
-  handleSubmit: function(e) {
-    e.preventDefault();
-    var from = this.refs.from.getDOMNode();
-    var tos = this.refs.to.getDOMNode();
-    var amount = this.refs.amount.getDOMNode();
-    var description = this.refs.description.getDOMNode();
-    var doc = {
-     description: description.value,
-            from: from.value,
-          amount: parseFloat(amount.value),
-             tos: tos.value.split(',')
-                     .map(function(x){return x.trim()})
-                     .filter(function(x){return x !== ''}),
-             date: (new Date()).toISOString()
-    };
+
+  addExpense: function(exp) {
+    var doc = exp;
     this.props.db.saveDoc(doc);
     this.state.expenses.push(doc);
     this.setState({expenses: this.state.expenses});
-    this.refs.form.getDOMNode().reset();
-    from.focus();
   },
 
   expand: function() {
@@ -129,25 +201,7 @@ var App = React.createClass({displayName: 'ExpensesApp',
     return D.div(null, 
        D.h3(null, "Who owes what?"), 
         DebtsList({debts: this.simplify()}), 
-         D.form({onSubmit: this.handleSubmit, ref:'form'}, 
-          D.input({placeholder: 'Description',
-                           ref:'description',
-                      required: true}),
-          D.input({placeholder: 'Who paid?', ref:'from', required:true}),
-          D.input({placeholder: 'For who?',
-                         title: 'You can enter several names, ' +
-                                'separated by a coma',
-                           ref: 'to',
-                      required: true}),
-          D.input({type:'number',
-                    placeholder:'Amount',
-                    ref:'amount',
-                    min: 0,
-                    step: 0.01
-          }),
-          D.button(null, 'Add')
-        ),
-        D.h3(null, "List of all expenses"), 
+        NewExpenseForm({addExpense: this.addExpense}),
         ExpensesList({expenses: this.state.expenses}),
         D.h3(null, "User accounts"), 
         UsersList({users: this.allusers()})
@@ -157,6 +211,7 @@ var App = React.createClass({displayName: 'ExpensesApp',
 
 function start() {
   var mountNode = document.getElementById('expenses');
+  $.couch.urlPrefix = HOST;
   var app = App({db: $.couch.db('comptes')});
 
   React.renderComponent(app, mountNode);
