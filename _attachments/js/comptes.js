@@ -96,8 +96,10 @@ var UserSelect = React.createClass({displayName:'UserSelect',
         tags: this.props.userNames,
         tokenSeparators: [','],
         maximumSelectionSize: this.props.multiple ? -1 : 1,
+        formatNoMatches: "",
         sortResults: function (results, container, query) {
-          if (results[0].text === query.term) results.push(results.shift());
+          if (results.length >0 && results[0].text === query.term)
+                results.push(results.shift());
           return results;
         }
     })
@@ -126,7 +128,7 @@ var UserSelect = React.createClass({displayName:'UserSelect',
     return D.input({
       type: 'hidden',
       placeholder: this.props.placeholder,
-      defaultValue: this.props.multiple ? userNames.join(', ') : ''
+      defaultValue: this.props.multiple ? this.props.userNames.join(', ') : ''
     });
   }
 });
@@ -139,20 +141,14 @@ var NewExpenseForm = React.createClass({displayName:'NewExpenseForm',
     var doc = {
       description: this.val('description').trim(),
              from: this.from.trim(),
-              tos: this.getTosArray(),
+              tos: this.to,
            amount: Math.round(parseFloat(this.val('amount')) * 100) / 100,
              date: new Date().toISOString()
     };
-    if (!doc.description || !doc.from) return;
+    if (!doc.description || !doc.from || !doc.tos.length) return;
     this.props.addExpense(doc);
     this.refs.form.getDOMNode().reset();
     this.refs.description.getDOMNode().focus();
-  },
-
-  getTosArray: function() {
-    return  this.val('to').split(',')
-              .map(function(x){return x.trim()})
-              .filter(function(x){return x.length});
   },
 
   val: function(name) {
@@ -180,12 +176,11 @@ var NewExpenseForm = React.createClass({displayName:'NewExpenseForm',
                     multiple: false,
                  placeholder: "Who paid?"
                         }),
-            D.input({className: 'form-control',
-                    placeholder: 'For who?',
-                     title: 'You can enter several names, ' +
-                            'separated by a coma',
-                       ref: 'to',
-                  required: true}),
+            UserSelect({onChange: this.setFunc('to'),
+                   userNames: this.props.userNames,
+                    multiple: true,
+                 placeholder: "For who?"
+                        }),
              D.input({className: 'form-control',
                     type:'number',
                placeholder:'Amount',
