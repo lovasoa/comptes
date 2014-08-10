@@ -20,8 +20,8 @@ D = React.DOM
           D.li className: "list-group-item",
 
             D.h4( className: "list-group-item-heading",
-               D.span( className: "label label-info",
-                 exp.amount, " ", exp.description)),
+               D.span( className: "label label-info", exp.amount),
+               " ", exp.description),
 
             D.div className: "list-group-item-text",
                 D.p(null,

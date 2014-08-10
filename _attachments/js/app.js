@@ -166,7 +166,7 @@
             className: "list-group-item-heading"
           }, D.span({
             className: "label label-info"
-          }, exp.amount, " ", exp.description)), D.div({
+          }, exp.amount), " ", exp.description), D.div({
             className: "list-group-item-text"
           }, D.p(null, "By ", D.b(null, exp.from), "."), D.p(null, "For " + exp.tos.join(", ") + "."), D.button({
             className: "btn",
