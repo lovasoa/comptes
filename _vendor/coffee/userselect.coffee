@@ -16,6 +16,7 @@ D = React.DOM
     )
       .select2("val", if @props.multiple then @props.userNames else [])
       .on "change", @change
+    @change()
 
   componentDidMount: ->
     @attachSelect2()

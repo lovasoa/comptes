@@ -34,25 +34,48 @@ D = React.DOM
         ref: "form"
         role: "form"
         ,
+        D.label(
+          htmlFor: "expense-form-description"
+          className: "control-label"
+          "Description"
+        ),
         D.input(
+          id: "expense-form-description"
           className: "form-control"
-          placeholder: "Description"
+          placeholder: "What was bought?"
           ref: "description"
-          required: true)
+          required: true),
 
+        D.label(
+          htmlFor: "expense-form-from"
+          className: "control-label"
+          "Person who made the expense"
+        ),
         UserSelect(
+          id: "expenses-form-from"
           onChange: @setFunc("from")
           userNames: @props.userNames
           multiple: false
           placeholder: "Who paid?"),
 
+        D.label(
+          htmlFor: "expense-form-for"
+          className: "control-label"
+          "Persons concerned by the expense"
+        ),
         UserSelect(
           onChange: @setFunc("to")
           userNames: @props.userNames
           multiple: true
           placeholder: "For who?"),
 
+        D.label(
+          htmlFor: "expense-form-amount"
+          className: "control-label"
+          "Amount of the expense"
+        ),
         D.input(
+          id:"expense-form-amount"
           className: "form-control"
           type: "number"
           placeholder: "How much money?"
@@ -61,6 +84,6 @@ D = React.DOM
           min: 0
           step: 0.01),
 
-        D.button({className: "btn btn-primary"}, "Add")
-
-
+        D.button className: "btn btn-primary",
+          D.span(className:"fa fa-plus"),
+          "Add this expense"

@@ -16,20 +16,23 @@ D = React.DOM
       
       D.ul className: "panel-body list-group",
 
-        @props.expenses.map (exp, n) =>
-          D.li className: "list-group-item",
+        @props.expenses
+          .filter (exp) -> exp.repaid isnt true
+          .sort (e1,e2) -> e1.date < e2.date
+          .map (exp, n) =>
+            D.li className: "list-group-item",
 
-            D.h4( className: "list-group-item-heading",
-               D.span( className: "label label-info", exp.amount),
-               " ", exp.description),
+              D.h4( className: "list-group-item-heading",
+                 D.span( className: "label label-info", exp.amount),
+                 " ", exp.description),
 
-            D.div className: "list-group-item-text",
-                D.p(null,
-                     "By ", D.b(null, exp.from), "."),
-                D.p(null,
-                  "For " + exp.tos.join(", ") + "."),
-                D.button(
-                  className: "btn"
-                  onClick: @mkDeleteFunc(exp, n)
-                  , D.span(className: "glyphicon glyphicon-trash")
-                  , "Delete")
+              D.div className: "list-group-item-text",
+                  D.p(null,
+                       "By ", D.b(null, exp.from), "."),
+                  D.p(null,
+                    "For " + exp.tos.join(", ") + "."),
+                  D.button(
+                    className: "btn btn-danger"
+                    onClick: @mkDeleteFunc(exp, n)
+                    , D.span(className: "fa fa-trash-o")
+                    , D.span(className:"visible-lg-inline", "Delete"))
