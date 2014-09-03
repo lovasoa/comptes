@@ -20,19 +20,21 @@ D = React.DOM
           .filter (exp) -> exp.repaid isnt true
           .sort (e1,e2) -> e1.date < e2.date
           .map (exp, n) =>
-            D.li className: "list-group-item",
+            label = switch Math.floor exp.amount/50
+                      when 0 then "success"
+                      when 1 then "warning"
+                      else "danger"
+            D.li className: "list-group-item row",
 
-              D.h4( className: "list-group-item-heading",
-                 D.span( className: "label label-info", exp.amount),
-                 " ", exp.description),
-
-              D.div className: "list-group-item-text",
+              D.h4( className:"col-md-2 col-sm-1 label label-#{label}",
+                        Utils.amount exp.amount)
+              D.div( className:"col-md-6 col-sm-8",
+                D.h4 null, exp.description
+                D.p null, "By ", D.b null, exp.from)
+              D.div( className:"col-md-3 col-sm-2",
                   D.p(null,
-                       "By ", D.b(null, exp.from), "."),
-                  D.p(null,
-                    "For " + exp.tos.join(", ") + "."),
-                  D.button(
-                    className: "btn btn-danger"
-                    onClick: @mkDeleteFunc(exp, n)
-                    , D.span(className: "fa fa-trash-o")
-                    , D.span(className:"visible-lg-inline", "Delete"))
+                    "For " + exp.tos.join(", ") + "."))
+              D.button(
+                className: "btn btn-danger col-md-1 col-sm-1"
+                onClick: @mkDeleteFunc(exp, n)
+                , D.span(className: "fa fa-trash-o"))
