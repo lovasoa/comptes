@@ -29,6 +29,10 @@ class @ExpensesApp
       ),
       @mountNode)
 
+Utils =
+  # Round the amounts to the nearest cent
+  amount: (x) -> if x is (x|0) then x else parseFloat(x).toFixed(2)
+
 document.addEventListener 'DOMContentLoaded', =>
   @app = new @ExpensesApp document.getElementById 'expenses'
   @app.render()
