@@ -18,9 +18,11 @@ D = React.DOM
               D.th null, "To",
               D.th null, "Amount"),
         D.tbody null,
-          @props.debts.map (debt) ->
+          @props.debts
+            .sort (a,b) -> b.amount-a.amount
+            .map (debt) ->
               D.tr null,
                   D.td null, debt.from,
                   D.td null, debt.to,
-                  D.td null, debt.amount
+                  D.td null, Utils.amount debt.amount
 

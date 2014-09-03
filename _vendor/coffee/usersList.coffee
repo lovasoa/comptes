@@ -16,8 +16,10 @@ D = React.DOM
             D.th null, "Total"),
 
         D.tbody null,
-          @props.users.map (user) ->
-            D.tr null,
-              D.td(null, user.name),
-              D.td(null, user.amount)
+          @props.users
+            .sort (a,b) -> b.amount-a.amount
+            .map (user) ->
+              D.tr null,
+                D.td(null, user.name),
+                D.td(null, Utils.amount user.amount)
 
