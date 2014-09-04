@@ -1,6 +1,8 @@
 class @ExpensesApp
   HOST: ''
 
+  expenses: []
+
   constructor: (mountOn = document.body) ->
     @mountNode = mountOn
     @db = $.couch.db 'comptes'
@@ -24,7 +26,6 @@ class @ExpensesApp
     React.renderComponent(
       ExpensesAppUI(
         db: @db
-        users: @users
         expenses: @expenses
       ),
       @mountNode)
