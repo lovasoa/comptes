@@ -29,6 +29,8 @@
   this.ExpensesApp = (function() {
     ExpensesApp.prototype.HOST = '';
 
+    ExpensesApp.prototype.expenses = [];
+
     function ExpensesApp(mountOn) {
       if (mountOn == null) {
         mountOn = document.body;
@@ -66,7 +68,6 @@
     ExpensesApp.prototype.render = function() {
       return React.renderComponent(ExpensesAppUI({
         db: this.db,
-        users: this.users,
         expenses: this.expenses
       }), this.mountNode);
     };
