@@ -10,14 +10,7 @@ D = React.DOM
     @props.db.saveDoc doc
 
   expand: ->
-    expenses = []
-    @props.expenses.forEach (exp) ->
-      exp.tos.forEach (to) ->
-        expenses.push
-          from: exp.from
-          to: to
-          amount: -exp.amount / exp.tos.length
-    expenses
+    @props.expenses.reduce ((p,c)->p.concat Utils.expandExpense c), []
 
   simplify: ->
     debts.simplify @expand()

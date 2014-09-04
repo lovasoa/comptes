@@ -30,9 +30,23 @@ class @ExpensesApp
       ),
       @mountNode)
 
-Utils =
+@Utils =
   # Round the amounts to the nearest cent
   amount: (x) -> if x is (x|0) then x else parseFloat(x).toFixed(2)
+
+  # Split one expense that concerns several persons to
+  # several expenses (one per person) this function manages the cents,
+  # so that the balance is always balanced
+  expandExpense: (exp) ->
+    exp.tos.reduce(
+      (prev, to, i) ->
+        part =  -Math.floor(100 * exp.amount/exp.tos.length)/100
+        prev.push
+          from: exp.from
+          to: to
+          amount: part - if i<((100*exp.amount)%exp.tos.length) then .01 else 0
+        prev
+      , [])
 
 document.addEventListener 'DOMContentLoaded', =>
   @app = new @ExpensesApp document.getElementById 'expenses'
