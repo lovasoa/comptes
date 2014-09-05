@@ -6,6 +6,33 @@
 
   D = React.DOM;
 
+  this.ColoredAmount = React.createClass({
+    displayName: "ColoredAmount",
+    getDefaultProps: function() {
+      return {
+        tagName: 'span',
+        stops: [20, 50, 100, 200, Infinity],
+        labels: ["info", "success", "warning", "danger", "highdanger"]
+      };
+    },
+    render: function() {
+      var i, label, stop, _i, _len, _ref;
+      _ref = this.props.stops;
+      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+        stop = _ref[i];
+        label = this.props.labels[i];
+        if (this.props.amount < stop) {
+          break;
+        }
+      }
+      return D[this.props.tagName]({
+        className: "coloredAmount label label-" + label
+      }, Utils.amount(this.props.amount));
+    }
+  });
+
+  D = React.DOM;
+
   this.DebtsList = React.createClass({
     displayName: "DebtsList",
     render: function() {
@@ -21,7 +48,9 @@
       }, D.thead(null, D.tr(null, D.th(null, "From", D.th(null, "To", D.th(null, "Amount"))))), D.tbody(null, this.props.debts.sort(function(a, b) {
         return b.amount - a.amount;
       }).map(function(debt) {
-        return D.tr(null, D.td(null, debt.from, D.td(null, debt.to, D.td(null, Utils.amount(debt.amount)))));
+        return D.tr(null, D.td(null, debt.from, D.td(null, debt.to, D.td(null, ColoredAmount({
+          amount: debt.amount
+        })))));
       }))));
     }
   });
@@ -188,22 +217,14 @@
         return e1.date < e2.date;
       }).map((function(_this) {
         return function(exp, n) {
-          var label;
-          label = (function() {
-            switch (Math.floor(exp.amount / 50)) {
-              case 0:
-                return "success";
-              case 1:
-                return "warning";
-              default:
-                return "danger";
-            }
-          })();
           return D.li({
             className: "list-group-item row"
-          }, D.h4({
-            className: "col-md-2 col-sm-1 label label-" + label
-          }, Utils.amount(exp.amount)), D.div({
+          }, D.div({
+            className: "col-md-2 col-sm-1"
+          }, ColoredAmount({
+            tagName: "h4",
+            amount: exp.amount
+          })), D.div({
             className: "col-md-6 col-sm-8"
           }, D.h4(null, exp.description), D.p(null, "By ", D.b(null, exp.from))), D.div({
             className: "col-md-3 col-sm-2"
@@ -326,7 +347,11 @@
       }, D.thead(null, D.tr(null, D.th(null, "User", D.th(null, "Total")))), D.tbody(null, this.props.users.sort(function(a, b) {
         return b.amount - a.amount;
       }).map(function(user) {
-        return D.tr(null, D.td(null, user.name), D.td(null, Utils.amount(user.amount)));
+        return D.tr(null, D.td(null, user.name), D.td(null, ColoredAmount({
+          amount: user.amount,
+          stops: [0, Infinity],
+          labels: ["danger", "success"]
+        })));
       }))));
     }
   });

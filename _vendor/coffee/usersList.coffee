@@ -21,5 +21,8 @@ D = React.DOM
             .map (user) ->
               D.tr null,
                 D.td(null, user.name),
-                D.td(null, Utils.amount user.amount)
+                D.td(null, ColoredAmount
+                              amount: user.amount
+                              stops:  [0, Infinity]
+                              labels: ["danger", "success"])
 

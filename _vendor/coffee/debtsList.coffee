@@ -24,5 +24,5 @@ D = React.DOM
               D.tr null,
                   D.td null, debt.from,
                   D.td null, debt.to,
-                  D.td null, Utils.amount debt.amount
+                  D.td null, ColoredAmount amount:debt.amount
 

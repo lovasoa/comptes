@@ -20,14 +20,11 @@ D = React.DOM
           .filter (exp) -> exp.repaid isnt true
           .sort (e1,e2) -> e1.date < e2.date
           .map (exp, n) =>
-            label = switch Math.floor exp.amount/50
-                      when 0 then "success"
-                      when 1 then "warning"
-                      else "danger"
             D.li className: "list-group-item row",
 
-              D.h4( className:"col-md-2 col-sm-1 label label-#{label}",
-                        Utils.amount exp.amount)
+              D.div(className:"col-md-2 col-sm-1",
+                  ColoredAmount tagName:"h4", amount:exp.amount)
+
               D.div( className:"col-md-6 col-sm-8",
                 D.h4 null, exp.description
                 D.p null, "By ", D.b null, exp.from)
