@@ -22,10 +22,10 @@ D = React.DOM
           .map (exp, n) =>
             D.li className: "list-group-item row",
 
-              D.div(className:"col-md-2 col-sm-1",
+              D.div(className:"col-md-3 col-sm-2",
                   ColoredAmount tagName:"h4", amount:exp.amount)
 
-              D.div( className:"col-md-6 col-sm-8",
+              D.div( className:"col-md-5 col-sm-7",
                 D.h4 null, exp.description
                 D.p null, "By ", D.b null, exp.from)
               D.div( className:"col-md-3 col-sm-2",

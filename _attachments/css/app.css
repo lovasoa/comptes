@@ -10,6 +10,7 @@
   font-size:1.1em;
   display:inline-block;
   width:70px;
+  max-width:100%;
 }
 
 .label-highdanger {
