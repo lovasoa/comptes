@@ -20,17 +20,19 @@ D = React.DOM
           .filter (exp) -> exp.repaid isnt true
           .sort (e1,e2) -> e1.date < e2.date
           .map (exp, n) =>
-            D.li className: "list-group-item row",
+            D.li
+              className: "list-group-item row"
+              key:exp.date+exp.description,
 
               D.div(className:"col-md-3 col-sm-2",
                   ColoredAmount tagName:"h4", amount:exp.amount)
 
               D.div( className:"col-md-5 col-sm-7",
                 D.h4 null, exp.description
-                D.p null, "By ", D.b null, exp.from)
+                D.p className:"expenseBy", "By ", D.b null, exp.from
+                D.p className:"expenseFor", "For " + exp.tos.join(", ") + ".")
               D.div( className:"col-md-3 col-sm-2",
-                  D.p(null,
-                    "For " + exp.tos.join(", ") + "."))
+                  D.p className:"expenseDate", new Date(exp.date).toLocaleString())
               D.button(
                 className: "btn btn-danger col-md-1 col-sm-1"
                 onClick: @mkDeleteFunc(exp, n)
