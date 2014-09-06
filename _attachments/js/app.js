@@ -8,6 +8,7 @@
 
   this.ColoredAmount = React.createClass({
     displayName: "ColoredAmount",
+    mixins: [React.addons.PureRenderMixin],
     getDefaultProps: function() {
       return {
         tagName: 'span',
@@ -48,7 +49,9 @@
       }, D.thead(null, D.tr(null, D.th(null, "From", D.th(null, "To", D.th(null, "Amount"))))), D.tbody(null, this.props.debts.sort(function(a, b) {
         return b.amount - a.amount;
       }).map(function(debt) {
-        return D.tr(null, D.td(null, debt.from, D.td(null, debt.to, D.td(null, ColoredAmount({
+        return D.tr({
+          key: debt.from + '/' + debt.to
+        }, D.td(null, debt.from, D.td(null, debt.to, D.td(null, ColoredAmount({
           amount: debt.amount
         })))));
       }))));
@@ -218,7 +221,8 @@
       }).map((function(_this) {
         return function(exp, n) {
           return D.li({
-            className: "list-group-item row"
+            className: "list-group-item row",
+            key: exp.date + exp.description
           }, D.div({
             className: "col-md-3 col-sm-2"
           }, ColoredAmount({
@@ -226,9 +230,15 @@
             amount: exp.amount
           })), D.div({
             className: "col-md-5 col-sm-7"
-          }, D.h4(null, exp.description), D.p(null, "By ", D.b(null, exp.from))), D.div({
+          }, D.h4(null, exp.description), D.p({
+            className: "expenseBy"
+          }, "By ", D.b(null, exp.from)), D.p({
+            className: "expenseFor"
+          }, "For " + exp.tos.join(", ") + ".")), D.div({
             className: "col-md-3 col-sm-2"
-          }, D.p(null, "For " + exp.tos.join(", ") + ".")), D.button({
+          }, D.p({
+            className: "expenseDate"
+          }, new Date(exp.date).toLocaleString())), D.button({
             className: "btn btn-danger col-md-1 col-sm-1",
             onClick: _this.mkDeleteFunc(exp, n)
           }, D.span({
@@ -243,22 +253,43 @@
 
   this.NewExpenseForm = React.createClass({
     displayName: "NewExpenseForm",
+    getInitialState: function() {
+      return {
+        from: "",
+        tos: [],
+        amount: ""
+      };
+    },
     handleSubmit: function(evt) {
-      var doc;
+      var amount, doc;
       evt.preventDefault();
+      try {
+        amount = this.computeAmount();
+      } catch (_error) {
+        return false;
+      }
       doc = {
         description: this.val("description").trim(),
         from: this.from.trim(),
         tos: this.to,
-        amount: Math.round(parseFloat(this.val("amount")) * 100) / 100,
+        amount: amount,
         date: new Date().toISOString()
       };
       if (!doc.description || !doc.from || !doc.tos.length) {
         return;
       }
       this.props.addExpense(doc);
+      this.replaceState(this.getInitialState());
       this.refs.form.getDOMNode().reset();
       return this.refs.description.getDOMNode().focus();
+    },
+    computeAmount: function() {
+      return Math.round(100 * calculator.parse(this.state.amount)) / 100;
+    },
+    handleAmountChange: function(e) {
+      return this.setState({
+        amount: e.target.value
+      });
     },
     val: function(name) {
       if (name in this.refs) {
@@ -275,6 +306,7 @@
       })(this);
     },
     render: render = function() {
+      var e;
       return D.article({
         className: "panel panel-default"
       }, D.div({
@@ -301,6 +333,7 @@
         id: "expenses-form-from",
         onChange: this.setFunc("from"),
         userNames: this.props.userNames,
+        value: this.from != null ? [this.from] : [],
         multiple: false,
         placeholder: "Who paid?"
       }), D.label({
@@ -309,21 +342,41 @@
       }, "Persons concerned by the expense"), UserSelect({
         onChange: this.setFunc("to"),
         userNames: this.props.userNames,
+        value: this.to || [],
         multiple: true,
         placeholder: "For who?"
       }), D.label({
         htmlFor: "expense-form-amount",
         className: "control-label"
-      }, "Amount of the expense"), D.input({
+      }, "Amount of the expense (can be a simple formula, e.g. '13+5%')"), D.input({
         id: "expense-form-amount",
         className: "form-control",
-        type: "number",
+        type: "tel",
+        pattern: "[0-9\\-][0-9+\\-*/%]*",
+        title: "The amount that was spent, as a number, or a formula",
+        onChange: this.handleAmountChange,
         placeholder: "How much money?",
         ref: "amount",
         required: true,
         min: 0,
         step: 0.01
-      }), D.button({
+      }), D.div({
+        className: "control-label calculator-result"
+      }, (function() {
+        var _ref;
+        if ((_ref = this.state.amount.trim()) === "" || _ref === String(parseFloat(this.state.amount))) {
+          return "";
+        } else {
+          try {
+            return " = " + Utils.amount(this.computeAmount());
+          } catch (_error) {
+            e = _error;
+            return D.span({
+              className: "invalid"
+            }, "Invalid number");
+          }
+        }
+      }).call(this)), D.button({
         className: "btn btn-primary"
       }, D.span({
         className: "fa fa-plus"
@@ -347,7 +400,9 @@
       }, D.thead(null, D.tr(null, D.th(null, "User", D.th(null, "Total")))), D.tbody(null, this.props.users.sort(function(a, b) {
         return b.amount - a.amount;
       }).map(function(user) {
-        return D.tr(null, D.td(null, user.name), D.td(null, ColoredAmount({
+        return D.tr({
+          key: user.name
+        }, D.td(null, user.name), D.td(null, ColoredAmount({
           amount: user.amount,
           stops: [0, Infinity],
           labels: ["danger", "success"]
@@ -361,7 +416,8 @@
   this.UserSelect = React.createClass({
     displayName: "UserSelect",
     attachSelect2: function() {
-      $(this.getDOMNode()).select2({
+      console.log(this.props.value);
+      return $(this.getDOMNode()).select2({
         tags: this.props.userNames,
         tokenSeparators: [","],
         maximumSelectionSize: (this.props.multiple ? -1 : 1),
@@ -373,8 +429,7 @@
           }
           return results;
         }
-      }).select2("val", this.props.multiple ? this.props.userNames : []).on("change", this.change);
-      return this.change();
+      }).val(this.props.value).on("change", this.change);
     },
     componentDidMount: function() {
       this.attachSelect2();
@@ -385,10 +440,27 @@
     componentDidUpdate: function() {
       this.attachSelect2();
     },
-    change: function() {
+    shouldComponentUpdate: function(nextProps, nextState) {
       var val;
+      if (!this.isMounted()) {
+        return true;
+      }
       val = $(this.getDOMNode()).select2("val");
-      this.props.onChange((this.props.multiple ? val : val[0]));
+      if ((val != null) && val.length === nextProps.value.length && nextProps.value.every(function(prop, i) {
+        return prop === val[i];
+      }) && nextProps.userNames.every((function(_this) {
+        return function(prop, i) {
+          return prop === _this.props.userNames[i];
+        };
+      })(this))) {
+        return false;
+      }
+      return true;
+    },
+    change: function(_arg) {
+      var val;
+      val = _arg.val;
+      this.props.onChange(this.props.multiple ? val : val[0]);
     },
     render: function() {
       return D.input({

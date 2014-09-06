@@ -3,6 +3,7 @@ D = React.DOM
 @UserSelect = React.createClass(
   displayName: "UserSelect"
   attachSelect2: ->
+    console.log @props.value
     $(@getDOMNode()).select2(
       tags: @props.userNames
       tokenSeparators: [","]
@@ -14,9 +15,8 @@ D = React.DOM
             results.push results.shift()
         results
     )
-      .select2("val", if @props.multiple then @props.userNames else [])
+      .val @props.value
       .on "change", @change
-    @change()
 
   componentDidMount: ->
     @attachSelect2()
@@ -30,9 +30,17 @@ D = React.DOM
     @attachSelect2()
     return
 
-  change: ->
+  shouldComponentUpdate: (nextProps, nextState) ->
+    return true unless @isMounted()
     val = $(@getDOMNode()).select2("val")
-    @props.onChange (if @props.multiple then val else val[0])
+    if val? and val.length is nextProps.value.length and
+       nextProps.value.every((prop,i) -> prop is val[i]) and
+       nextProps.userNames.every((prop,i) => prop is @props.userNames[i])
+          return false
+    true
+    
+  change: ({val}) ->
+    @props.onChange(if @props.multiple then val else val[0])
     return
 
   render: ->
