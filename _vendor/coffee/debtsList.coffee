@@ -21,7 +21,7 @@ D = React.DOM
           @props.debts
             .sort (a,b) -> b.amount-a.amount
             .map (debt) ->
-              D.tr null,
+              D.tr key:debt.from+'/'+debt.to,
                   D.td null, debt.from,
                   D.td null, debt.to,
                   D.td null, ColoredAmount amount:debt.amount

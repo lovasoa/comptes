@@ -19,7 +19,7 @@ D = React.DOM
           @props.users
             .sort (a,b) -> b.amount-a.amount
             .map (user) ->
-              D.tr null,
+              D.tr key:user.name,
                 D.td(null, user.name),
                 D.td(null, ColoredAmount
                               amount: user.amount

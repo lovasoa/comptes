@@ -3,6 +3,8 @@ D = React.DOM
 @ColoredAmount = React.createClass
   displayName: "ColoredAmount"
 
+  mixins: [React.addons.PureRenderMixin]
+
   getDefaultProps: ->
     tagName: 'span'
     stops:  [     20,         50,       100,     200,    Infinity]
