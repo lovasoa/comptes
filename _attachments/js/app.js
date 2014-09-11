@@ -255,8 +255,6 @@
     displayName: "NewExpenseForm",
     getInitialState: function() {
       return {
-        from: "",
-        tos: [],
         amount: ""
       };
     },

@@ -4,8 +4,6 @@ D = React.DOM
   displayName: "NewExpenseForm"
 
   getInitialState: ->
-    from: ""
-    tos: []
     amount: ""
 
   handleSubmit: (evt) ->
