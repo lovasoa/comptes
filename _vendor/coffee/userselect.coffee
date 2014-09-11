@@ -3,7 +3,6 @@ D = React.DOM
 @UserSelect = React.createClass(
   displayName: "UserSelect"
   attachSelect2: ->
-    console.log @props.value
     $(@getDOMNode()).select2(
       tags: @props.userNames
       tokenSeparators: [","]
@@ -15,7 +14,7 @@ D = React.DOM
             results.push results.shift()
         results
     )
-      .val @props.value
+      .select2 "val",@props.value
       .on "change", @change
 
   componentDidMount: ->
