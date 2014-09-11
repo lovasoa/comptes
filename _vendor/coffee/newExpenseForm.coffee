@@ -99,7 +99,7 @@ D = React.DOM
           id:"expense-form-amount"
           className: "form-control"
           type: "tel"
-          pattern: "[0-9\\-][0-9+\\-*/%]*"
+          pattern: "[0-9\\-][0-9.+\\-*/%]*"
           title: "The amount that was spent, as a number, or a formula"
           onChange: @handleAmountChange
           placeholder: "How much money?"
