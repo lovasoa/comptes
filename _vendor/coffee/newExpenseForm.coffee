@@ -85,7 +85,7 @@ D = React.DOM
         UserSelect(
           onChange: @setFunc("to")
           userNames: @props.userNames
-          value: @to or []
+          value: if !@to or @to.length is 0 then (@to = @props.userNames) else @to
           multiple: true
           placeholder: "For who?"),
 
