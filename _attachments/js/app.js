@@ -341,7 +341,7 @@
       }, "Persons concerned by the expense"), UserSelect({
         onChange: this.setFunc("to"),
         userNames: this.props.userNames,
-        value: this.to || [],
+        value: !this.to || this.to.length === 0 ? (this.to = this.props.userNames) : this.to,
         multiple: true,
         placeholder: "For who?"
       }), D.label({
@@ -351,7 +351,7 @@
         id: "expense-form-amount",
         className: "form-control",
         type: "tel",
-        pattern: "[0-9\\-][0-9+\\-*/%]*",
+        pattern: "[0-9\\-][0-9.+\\-*/%]*",
         title: "The amount that was spent, as a number, or a formula",
         onChange: this.handleAmountChange,
         placeholder: "How much money?",
@@ -415,7 +415,6 @@
   this.UserSelect = React.createClass({
     displayName: "UserSelect",
     attachSelect2: function() {
-      console.log(this.props.value);
       return $(this.getDOMNode()).select2({
         tags: this.props.userNames,
         tokenSeparators: [","],
@@ -428,7 +427,7 @@
           }
           return results;
         }
-      }).val(this.props.value).on("change", this.change);
+      }).select2("val", this.props.value).on("change", this.change);
     },
     componentDidMount: function() {
       this.attachSelect2();
