@@ -279,7 +279,8 @@
         return;
       }
       this.props.addExpense(doc);
-      this.replaceState(this.getInitialState());
+      this.to = this.from = void 0;
+      this.setState(this.getInitialState());
       this.refs.form.getDOMNode().reset();
       return this.refs.description.getDOMNode().focus();
     },

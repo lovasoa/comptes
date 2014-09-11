@@ -23,7 +23,8 @@ D = React.DOM
 
     return  if not doc.description or not doc.from or not doc.tos.length
     @props.addExpense doc
-    @replaceState @getInitialState()
+    @to = @from = undefined
+    @setState @getInitialState()
     @refs.form.getDOMNode().reset()
     @refs.description.getDOMNode().focus()
 
