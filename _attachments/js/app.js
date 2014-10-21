@@ -216,8 +216,17 @@
         className: "panel-body list-group"
       }, this.props.expenses.filter(function(exp) {
         return exp.repaid !== true;
-      }).sort(function(e1, e2) {
-        return e1.date < e2.date;
+      }).sort(function(_arg, _arg1) {
+        var a, b;
+        a = _arg.date;
+        b = _arg1.date;
+        if (a === b) {
+          return 0;
+        } else if (a < b) {
+          return 1;
+        } else {
+          return -1;
+        }
       }).map((function(_this) {
         return function(exp, n) {
           return D.li({

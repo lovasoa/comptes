@@ -18,7 +18,8 @@ D = React.DOM
 
         @props.expenses
           .filter (exp) -> exp.repaid isnt true
-          .sort (e1,e2) -> e1.date < e2.date
+          .sort ({date:a}, {date:b}) ->
+            if a is b then 0 else if a<b then 1 else -1
           .map (exp, n) =>
             D.li
               className: "list-group-item row"
