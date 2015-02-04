@@ -59,7 +59,7 @@
   });
 
   this.ExpensesApp = (function() {
-    ExpensesApp.prototype.HOST = '';
+    ExpensesApp.prototype.HOST = window.location.protocol + "//" + window.location.host;
 
     ExpensesApp.prototype.expenses = [];
 
@@ -67,29 +67,32 @@
       if (mountOn == null) {
         mountOn = document.body;
       }
-      this.fetchData = __bind(this.fetchData, this);
+      this.update = __bind(this.update, this);
+      this.removeExpense = __bind(this.removeExpense, this);
+      this.addExpense = __bind(this.addExpense, this);
+      this.refresh = __bind(this.refresh, this);
+      this.syncData = __bind(this.syncData, this);
+      console.log("load at " + new Date);
       this.mountNode = mountOn;
-      this.db = $.couch.db('comptes');
-      $.couch.urlprefix = this.HOST;
-      this.changes = this.db.changes();
-      this.changes.onChange(this.fetchData);
-      this.fetchData();
+      this.db = new PouchDB('comptes');
+      this.refresh();
+      this.remoteDb = new PouchDB(this.HOST + '/comptes');
+      this.syncData();
+      this.render();
     }
 
-    ExpensesApp.prototype.fetchData = function() {
-      return this.db.view("expenseslist/ListOfExpenses", {
-        success: (function(_this) {
-          return function(view) {
-            return _this.set('expenses', view.rows.map(function(r) {
-              return r.value;
-            }));
-          };
-        })(this),
-        error: function(err) {
-          return console.error("Unable to fetch expenses", err);
-        },
-        reduce: false
-      });
+    ExpensesApp.prototype.syncData = function() {
+      return this.db.sync(this.remoteDb, {
+        live: true
+      }).on('change', (function(_this) {
+        return function(change) {
+          return _this.refresh();
+        };
+      })(this)).on('error', (function(_this) {
+        return function(err) {
+          return console.error(err);
+        };
+      })(this));
     };
 
     ExpensesApp.prototype.set = function(key, value) {
@@ -97,11 +100,72 @@
       return this.render();
     };
 
+    ExpensesApp.prototype.refresh = function() {
+      var params;
+      params = {
+        include_docs: true,
+        conflicts: false,
+        startkey: "expense-",
+        endkey: "expense_"
+      };
+      console.log("call allDocs at " + new Date);
+      return this.db.allDocs(params, (function(_this) {
+        return function(err, result) {
+          _this.expenses = result.rows.map(function(raw) {
+            return raw.doc;
+          });
+          console.log("refresh at " + new Date);
+          return _this.render();
+        };
+      })(this));
+    };
+
+    ExpensesApp.prototype.addExpense = function(exp) {
+      var id;
+      id = "expense-" + exp.date + "-" + exp.from + "-" + exp.amount;
+      return this.db.put(exp, id).then(this.refresh);
+    };
+
+    ExpensesApp.prototype.removeExpense = function(exp) {
+      return this.db.remove(exp).then(this.refresh);
+    };
+
     ExpensesApp.prototype.render = function() {
       return React.renderComponent(ExpensesAppUI({
-        db: this.db,
-        expenses: this.expenses
+        expenses: this.expenses,
+        addExpense: this.addExpense,
+        removeExpense: this.removeExpense
       }), this.mountNode);
+    };
+
+    ExpensesApp.prototype.update = function() {
+      return this.db.allDocs({
+        include_docs: true
+      }, (function(_this) {
+        return function(err, result) {
+          var docs, exp, id, newdocs, _i, _len;
+          newdocs = [];
+          docs = result.rows.map(function(raw) {
+            return raw.doc;
+          });
+          for (_i = 0, _len = docs.length; _i < _len; _i++) {
+            exp = docs[_i];
+            id = "expense-" + exp.date + "-" + exp.from + "-" + exp.amount;
+            if (exp.tos && id !== exp._id) {
+              console.log(exp._id);
+              newdocs.push({
+                _id: exp._id,
+                _rev: exp._rev,
+                _deleted: true
+              });
+              exp._id = id;
+              delete exp._rev;
+              newdocs.push(exp);
+            }
+          }
+          return _this.db.bulkDocs(newdocs);
+        };
+      })(this));
     };
 
     return ExpensesApp;
@@ -141,12 +205,6 @@
 
   this.ExpensesAppUI = React.createClass({
     displayName: "ExpensesAppUI",
-    removeDoc: function(doc, n) {
-      return this.props.db.removeDoc(doc);
-    },
-    addExpense: function(doc) {
-      return this.props.db.saveDoc(doc);
-    },
     expand: function() {
       return this.props.expenses.reduce((function(p, c) {
         return p.concat(Utils.expandExpense(c));
@@ -174,13 +232,13 @@
       }, D.div({
         className: "col-md-6"
       }, NewExpenseForm({
-        addExpense: this.addExpense,
+        addExpense: this.props.addExpense,
         userNames: this.allUsers().map(function(u) {
           return u.name;
         })
       }), ExpensesList({
         expenses: this.props.expenses,
-        removeDoc: this.removeDoc
+        removeExpense: this.props.removeExpense
       })), D.div({
         className: "col-md-6"
       }, DebtsList({
@@ -199,7 +257,7 @@
       return (function(_this) {
         return function(evt) {
           if (confirm("Are you sure?")) {
-            return _this.props.removeDoc(doc, n);
+            return _this.props.removeExpense(doc, n);
           }
         };
       })(this);

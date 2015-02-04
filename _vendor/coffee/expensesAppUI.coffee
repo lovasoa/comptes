@@ -3,12 +3,6 @@ D = React.DOM
 @ExpensesAppUI = React.createClass
   displayName: "ExpensesAppUI"
 
-  removeDoc: (doc, n) ->
-      @props.db.removeDoc doc
-
-  addExpense: (doc) ->
-    @props.db.saveDoc doc
-
   expand: ->
     @props.expenses.reduce ((p,c)->p.concat Utils.expandExpense c), []
 
@@ -27,11 +21,11 @@ D = React.DOM
 
       D.div(className:"col-md-6",
         NewExpenseForm
-          addExpense: @addExpense
+          addExpense: @props.addExpense
           userNames: @allUsers().map (u) -> u.name
         ExpensesList
           expenses: @props.expenses
-          removeDoc: @removeDoc
+          removeExpense: @props.removeExpense
        )
 
       D.div(className:"col-md-6",

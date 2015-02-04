@@ -3,7 +3,7 @@ D = React.DOM
 @ExpensesList = React.createClass
   displayName: "ExpensesList"
   mkDeleteFunc: (doc, n) -> (evt) =>
-      @props.removeDoc doc, n if confirm("Are you sure?")
+      @props.removeExpense doc, n if confirm("Are you sure?")
 
   render: ->
     D.article
